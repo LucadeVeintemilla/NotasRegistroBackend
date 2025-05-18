@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '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';
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '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';
 sgMail.setApiKey(SENDGRID_API_KEY);
 
 /**
