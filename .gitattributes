@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+#ignorar node_modules
+node_modules text=auto eol=lf
+

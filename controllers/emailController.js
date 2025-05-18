@@ -1,7 +1,9 @@
 const sgMail = require('@sendgrid/mail');
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
-// Set SendGrid API Key (this will be overridden by .env variable)
-// Note: It's better to store this in an environment variable (.env file)
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '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';
 sgMail.setApiKey(SENDGRID_API_KEY);
 
@@ -14,32 +16,79 @@ exports.sendEmailWithPDF = async (req, res) => {
   try {
     const { 
       to, 
-      from = 'registronotas2025@gmail.com', 
+      from, 
       subject, 
       text, 
       html, 
-      pdfContent, 
+      htmlContent, 
+      pdfContent,
       pdfName = 'evaluacion.pdf' 
     } = req.body;
+    
+    
+    const verifiedSender = 'registronotas2025@gmail.com';
 
-    // Check for required fields
-    if (!to || !subject || !pdfContent) {
+    if (!to || !subject || (!htmlContent && !pdfContent)) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: to, subject, or pdfContent' 
+        message: 'Campos requeridos faltantes (htmlContent or pdfContent)' 
       });
     }
 
-    // Prepare the email message
+    let pdfBase64;
+    
+    if (htmlContent && !pdfContent) {
+      try {
+        const tempDir = path.join(os.tmpdir(), 'notas-registro-pdfs');
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        const tempPdfPath = path.join(tempDir, `${Date.now()}.pdf`);
+
+        const browser = await puppeteer.launch({
+          headless: 'new', 
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+        const page = await browser.newPage();
+        await page.setContent(htmlContent);
+        await page.pdf({ 
+          path: tempPdfPath,
+          format: 'A4',
+          printBackground: true,
+          margin: {
+            top: '20px',
+            right: '20px',
+            bottom: '20px',
+            left: '20px'
+          }
+        });
+        await browser.close();
+
+        pdfBase64 = fs.readFileSync(tempPdfPath, { encoding: 'base64' });
+
+        fs.unlinkSync(tempPdfPath);
+      } catch (pdfError) {
+        console.error('Error al generar PDF:', pdfError);
+        return res.status(500).json({
+          success: false, 
+          message: 'Error al generar PDF', 
+          error: pdfError.message
+        });
+      }
+    } else {
+      pdfBase64 = pdfContent;
+    }
+
     const msg = {
       to,
-      from,
+      from: verifiedSender, 
       subject,
       text: text || 'Adjunto encontrará el informe de evaluación.',
       html: html || '<p>Adjunto encontrará el informe de evaluación.</p>',
       attachments: [
         {
-          content: pdfContent, // Base64 encoded content
+          content: pdfBase64, 
           filename: pdfName,
           type: 'application/pdf',
           disposition: 'attachment'
@@ -47,22 +96,26 @@ exports.sendEmailWithPDF = async (req, res) => {
       ]
     };
 
-    // Send the email
     await sgMail.send(msg);
 
-    // Return success response
     return res.status(200).json({
       success: true,
-      message: 'Email sent successfully'
+      message: 'Email enviado con éxito',
     });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error enviando correo:', error);
     
-    // Return error response
+    let errorDetails = error.message;
+    
+    if (error.response && error.response.body && error.response.body.errors) {
+      errorDetails = JSON.stringify(error.response.body.errors);
+      console.error('SendGrid error detalles:', errorDetails);
+    }
+    
     return res.status(500).json({
       success: false,
-      message: 'Failed to send email',
-      error: error.message
+      message: 'Error enviando correo',
+      error: errorDetails
     });
   }
-};
+}
