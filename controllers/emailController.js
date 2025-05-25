@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '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';
 sgMail.setApiKey(SENDGRID_API_KEY);
 
 /**
@@ -24,7 +24,6 @@ exports.sendEmailWithPDF = async (req, res) => {
       pdfContent,
       pdfName = 'evaluacion.pdf' 
     } = req.body;
-    
     
     const verifiedSender = 'registronotas2025@gmail.com';
 
@@ -69,7 +68,6 @@ exports.sendEmailWithPDF = async (req, res) => {
 
         fs.unlinkSync(tempPdfPath);
       } catch (pdfError) {
-        console.error('Error al generar PDF:', pdfError);
         return res.status(500).json({
           success: false, 
           message: 'Error al generar PDF', 
@@ -103,13 +101,10 @@ exports.sendEmailWithPDF = async (req, res) => {
       message: 'Email enviado con éxito',
     });
   } catch (error) {
-    console.error('Error enviando correo:', error);
-    
     let errorDetails = error.message;
     
     if (error.response && error.response.body && error.response.body.errors) {
       errorDetails = JSON.stringify(error.response.body.errors);
-      console.error('SendGrid error detalles:', errorDetails);
     }
     
     return res.status(500).json({
