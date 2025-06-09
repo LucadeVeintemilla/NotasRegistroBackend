@@ -160,3 +160,57 @@ exports.getUsuariosPorTipo = async (req, res) => {
     });
   }
 };
+
+
+exports.registroPorTecnico = async (req, res) => {
+  try {
+    const { nombre, apellido, cedula, correo, telefono, contraseña, tipo } = req.body;
+
+    if (tipo !== 'lector' && tipo !== 'director') {
+      return res.status(403).json({
+        success: false,
+        message: 'Los técnicos solo pueden registrar usuarios con rol de lector o director'
+      });
+    }
+
+    const usuarioExistente = await Usuario.findOne({ 
+      $or: [{ correo }, { cedula }]
+    });
+
+    if (usuarioExistente) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ya existe un usuario con este correo o cédula'
+      });
+    }
+
+    const usuario = await Usuario.create({
+      nombre,
+      apellido,
+      cedula,
+      correo,
+      telefono,
+      contraseña,
+      tipo
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuario registrado exitosamente',
+      usuario: {
+        id: usuario._id,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        correo: usuario.correo,
+        tipo: usuario.tipo
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al registrar usuario',
+      error: error.message
+    });
+  }
+};
