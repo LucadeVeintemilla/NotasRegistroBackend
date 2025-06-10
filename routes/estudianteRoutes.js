@@ -14,11 +14,11 @@ router.use(protect);
 
 router.route('/')
   .get(getEstudiantes)
-  .post(authorize('administrador', 'director'), crearEstudiante);
+  .post(authorize('administrador', 'director', 'secretario'), crearEstudiante);
 
 router.route('/:id')
   .get(getEstudiante)
-  .put(authorize('administrador', 'director'), updateEstudiante)
-  .delete(authorize('administrador', 'director'), deleteEstudiante);
+  .put(authorize('administrador', 'director', 'secretario'), updateEstudiante)
+  .delete(authorize('administrador', 'director', 'secretario'), deleteEstudiante);
 
 module.exports = router;

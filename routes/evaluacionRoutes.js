@@ -16,7 +16,7 @@ router.use(protect);
 // Rutas accesibles según el tipo de usuario
 router.route('/')
   .get(authorize('lector', 'director'), getEvaluaciones) // Solo lector y director
-  .post(authorize('lector', 'administrador', 'director'), crearEvaluacion); // Permitir a lector, administrador y director
+  .post(authorize('lector', 'administrador', 'director', 'secretario'), crearEvaluacion); // Permitir a lector, administrador, director y secretario
 
 router.route('/:id')
   .get(authorize('lector', 'director'), getEvaluacion) // Solo lector y director

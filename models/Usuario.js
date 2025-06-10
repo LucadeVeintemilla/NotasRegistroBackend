@@ -41,7 +41,7 @@ const UsuarioSchema = new mongoose.Schema({
   },
   tipo: {
     type: String,
-    enum: ['administrador', 'lector', 'director', 'tecnico'],
+    enum: ['administrador', 'lector', 'director', 'tecnico', 'secretario'],
     required: [true, 'Por favor seleccione un tipo de usuario']
   },
   createdAt: {

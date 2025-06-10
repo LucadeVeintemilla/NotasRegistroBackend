@@ -11,9 +11,9 @@ router.post('/login', login);
 // Rutas protegidas
 router.get('/me', protect, getMe);
 router.get('/logout', protect, logout);
-router.get('/usuarios', protect, authorize('administrador', 'director'), getUsuariosPorTipo);
+router.get('/usuarios', protect, authorize('administrador', 'director', 'secretario'), getUsuariosPorTipo);
 
-// Ruta para técnicos
-router.post('/registro-tecnico', protect, authorize('tecnico'), registroPorTecnico);
+// Ruta para técnicos y secretarios
+router.post('/registro-tecnico', protect, authorize('tecnico', 'secretario'), registroPorTecnico);
 
 module.exports = router;
