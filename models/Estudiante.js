@@ -22,6 +22,11 @@ const EstudianteSchema = new mongoose.Schema({
     required: [true, 'Por favor ingrese el curso del estudiante'],
     trim: true
   },
+  tutor: {
+    type: String,
+    required: [true, 'Por favor ingrese el tutor asignado'],
+    trim: true
+  },
   tesis: {
     type: String,
     required: [true, 'Por favor ingrese el título de la tesis'],
