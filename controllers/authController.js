@@ -162,6 +162,55 @@ exports.getUsuariosPorTipo = async (req, res) => {
 };
 
 
+// @desc    Cambiar contraseña del usuario autenticado
+// @route   PUT /api/auth/cambiar-password
+// @access  Privado
+exports.cambiarPassword = async (req, res) => {
+  try {
+    const { contraseñaActual, nuevaContraseña } = req.body;
+    
+    // Validar campos
+    if (!contraseñaActual || !nuevaContraseña) {
+      return res.status(400).json({
+        success: false,
+        message: 'Por favor ingrese la contraseña actual y la nueva contraseña'
+      });
+    }
+
+    // Obtener el usuario
+    const usuario = await Usuario.findById(req.user.id).select('+contraseña');
+    
+    // Verificar la contraseña actual
+    const isMatch = await usuario.matchPassword(contraseñaActual);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'La contraseña actual es incorrecta'
+      });
+    }
+
+    // Actualizar la contraseña
+    usuario.contraseña = nuevaContraseña;
+    await usuario.save();
+
+    // Generar nuevo token
+    const token = usuario.getSignedJwtToken();
+
+    res.status(200).json({
+      success: true,
+      token,
+      message: 'Contraseña actualizada correctamente'
+    });
+  } catch (error) {
+    console.error('Error al cambiar la contraseña:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al cambiar la contraseña',
+      error: error.message
+    });
+  }
+};
+
 exports.registroPorTecnico = async (req, res) => {
   try {
     const { nombre, apellido, cedula, correo, telefono, contraseña, tipo } = req.body;

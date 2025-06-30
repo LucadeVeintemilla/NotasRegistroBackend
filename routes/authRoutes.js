@@ -1,5 +1,13 @@
 const express = require('express');
-const { registro, login, getMe, logout, getUsuariosPorTipo, registroPorTecnico } = require('../controllers/authController');
+const { 
+  registro, 
+  login, 
+  getMe, 
+  logout, 
+  getUsuariosPorTipo, 
+  registroPorTecnico, 
+  cambiarPassword 
+} = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
@@ -15,5 +23,8 @@ router.get('/usuarios', protect, authorize('administrador', 'director', 'secreta
 
 // Ruta para técnicos y secretarios
 router.post('/registro-tecnico', protect, authorize('tecnico', 'secretario'), registroPorTecnico);
+
+// Ruta para cambiar contraseña
+router.put('/cambiar-password', protect, cambiarPassword);
 
 module.exports = router;
