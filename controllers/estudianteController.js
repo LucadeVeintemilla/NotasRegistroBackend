@@ -1,8 +1,31 @@
 const Estudiante = require('../models/Estudiante');
 const Evaluacion = require('../models/Evaluacion');
 
+// Verificar si existe estudiante por cédula
+exports.verificarEstudiante = async (req, res) => {
+  try {
+    const existe = await Estudiante.findOne({ cedula: req.params.cedula });
+    res.status(200).json({ exists: !!existe });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Error al verificar estudiante', error: error.message });
+  }
+};
+
+const validarCedula = require('../utils/validarCedula');
+
 exports.crearEstudiante = async (req, res) => {
   try {
+    // Validar cédula solo si el tipo de documento es cédula (por defecto)
+    if (!req.body.tipoDocumento || req.body.tipoDocumento === 'cedula') {
+      if (!validarCedula(req.body.cedula)) {
+        return res.status(400).json({
+          success: false,
+          message: 'La cédula ingresada no es válida'
+        });
+      }
+    }
+
     req.body.createdBy = req.user.id;
     
     const estudiante = await Estudiante.create(req.body);

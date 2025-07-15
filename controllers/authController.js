@@ -1,10 +1,18 @@
 const Usuario = require('../models/Usuario');
 const jwt = require('jsonwebtoken');
+const validarCedula = require('../utils/validarCedula');
 
 
 exports.registro = async (req, res) => {
   try {
-    const { nombre, apellido, cedula, correo, telefono, contraseña, tipo } = req.body;
+    const { nombre, apellido, cedula, correo, telefono, contraseña, tipo, tipoDocumento } = req.body;
+
+    // Validar cédula solo si el tipo de documento es cédula (por defecto)
+    if (!tipoDocumento || tipoDocumento === 'cedula') {
+      if (!validarCedula(cedula)) {
+        return res.status(400).json({ success: false, message: 'La cédula ingresada no es válida' });
+      }
+    }
 
     const usuarioExistente = await Usuario.findOne({ 
       $or: [{ correo }, { cedula }]
@@ -162,6 +170,51 @@ exports.getUsuariosPorTipo = async (req, res) => {
 };
 
 
+// @desc    Actualizar usuario por ID
+// @route   PUT /api/auth/usuarios/:id
+// @access  Privado (solo administrador)
+exports.actualizarUsuario = async (req, res) => {
+  try {
+    const camposPermitidos = ['nombre', 'apellido', 'correo', 'telefono', 'tipo'];
+    const datosActualizacion = {};
+    camposPermitidos.forEach((campo) => {
+      if (req.body[campo] !== undefined) datosActualizacion[campo] = req.body[campo];
+    });
+
+    const usuario = await Usuario.findByIdAndUpdate(
+      req.params.id,
+      { $set: datosActualizacion },
+      { new: true, runValidators: true, context: 'query' }
+    ).select('-contraseña');
+
+    if (!usuario) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+
+    res.status(200).json({ success: true, message: 'Usuario actualizado', usuario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Error al actualizar usuario', error: error.message });
+  }
+};
+
+// @desc    Eliminar usuario por ID
+// @route   DELETE /api/auth/usuarios/:id
+// @access  Privado (solo administrador)
+exports.eliminarUsuario = async (req, res) => {
+  try {
+    const usuario = await Usuario.findByIdAndDelete(req.params.id);
+    if (!usuario) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+    res.status(200).json({ success: true, message: 'Usuario eliminado' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Error al eliminar usuario', error: error.message });
+  }
+};
+
+ 
 // @desc    Cambiar contraseña del usuario autenticado
 // @route   PUT /api/auth/cambiar-password
 // @access  Privado
@@ -213,9 +266,16 @@ exports.cambiarPassword = async (req, res) => {
 
 exports.registroPorTecnico = async (req, res) => {
   try {
-    const { nombre, apellido, cedula, correo, telefono, contraseña, tipo } = req.body;
+    const { nombre, apellido, cedula, correo, telefono, contraseña, tipo, tipoDocumento } = req.body;
 
-    if (tipo !== 'lector' && tipo !== 'director') {
+    // Validar cédula solo si el tipo de documento es cédula (por defecto)
+    if (!tipoDocumento || tipoDocumento === 'cedula') {
+      if (!validarCedula(cedula)) {
+        return res.status(400).json({ success: false, message: 'La cédula ingresada no es válida' });
+      }
+    }
+
+    if (tipo !== 'lector' && tipo !== 'director' && tipo !== 'secretario' && tipo !== 'tecnico') {
       return res.status(403).json({
         success: false,
         message: 'Los técnicos solo pueden registrar usuarios con rol de lector o director'

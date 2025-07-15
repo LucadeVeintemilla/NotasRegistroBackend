@@ -63,15 +63,14 @@ exports.getEvaluaciones = async (req, res) => {
       evaluaciones = await Evaluacion.find(query)
         .populate({
           path: 'estudiante',
-          select: 'nombre apellido'
+          select: 'nombre apellido cedula tipo maestria'
         })
         .populate({
           path: 'evaluador',
-          select: 'nombre apellido'
+          select: 'nombre apellido cedula tipo maestria'
         })
         .lean();
       
-      // Asegurarse de que los IDs se conviertan a strings
       evaluaciones = evaluaciones.map(eval => ({
         ...eval,
         _id: eval._id.toString(),
@@ -92,11 +91,11 @@ exports.getEvaluaciones = async (req, res) => {
       evaluaciones = await Evaluacion.find()
         .populate({
           path: 'estudiante',
-          select: 'nombre apellido'
+          select: 'nombre apellido cedula tipo maestria'
         })
         .populate({
           path: 'evaluador',
-          select: 'nombre apellido'
+          select: 'nombre apellido cedula tipo maestria'
         })
         .lean();
     }

@@ -4,13 +4,16 @@ const {
   getEstudiantes, 
   getEstudiante, 
   updateEstudiante, 
-  deleteEstudiante 
+  deleteEstudiante, 
+  verificarEstudiante 
 } = require('../controllers/estudianteController');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
 router.use(protect);
+
+router.get('/verificar/:cedula', verificarEstudiante);
 
 router.route('/')
   .get(getEstudiantes)

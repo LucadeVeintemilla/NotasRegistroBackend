@@ -11,15 +11,20 @@ const EstudianteSchema = new mongoose.Schema({
     required: [true, 'Por favor ingrese el apellido del estudiante'],
     trim: true
   },
-  codigo: {
+  cedula: {
     type: String,
-    required: [true, 'Por favor ingrese el código del estudiante'],
+    required: [true, 'Por favor ingrese la cédula del estudiante'],
     unique: true,
     trim: true
   },
-  curso: {
+  tipo: {
     type: String,
-    required: [true, 'Por favor ingrese el curso del estudiante'],
+    enum: ['antigua', 'actual'],
+    required: [true, 'Por favor seleccione el tipo de disertación']
+  },
+  maestria: {
+    type: String,
+    required: [true, 'Por favor ingrese la maestría del estudiante'],
     trim: true
   },
   tutor: {
@@ -43,4 +48,12 @@ const EstudianteSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('Estudiante', EstudianteSchema);
+const Estudiante = mongoose.model('Estudiante', EstudianteSchema);
+
+Estudiante.collection.dropIndex('codigo_1').catch((err) => {
+  if (err.code !== 27) { 
+    console.warn('No se pudo eliminar index codigo_1:', err.message);
+  }
+});
+
+module.exports = Estudiante;
