@@ -14,7 +14,21 @@ exports.crearEvaluacion = async (req, res) => {
     req.body.createdBy = req.user.id;
     
     const horarioInicio = new Date(req.body.horarioInicio);
-    const horarioFin = new Date(req.body.horarioFin);
+        const horarioFin = new Date(req.body.horarioFin);
+    
+    const solapada = await Evaluacion.findOne({
+      $and: [
+        { horarioInicio: { $lt: horarioFin } }, 
+        { horarioFin: { $gt: horarioInicio } } 
+      ]
+    });
+
+    if (solapada) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ya existe una disertación programada en ese horario. Por favor, elija otro rango.'
+      });
+    }
     
     if (horarioInicio >= horarioFin) {
       return res.status(400).json({
@@ -100,7 +114,6 @@ exports.getEvaluaciones = async (req, res) => {
         .lean();
     }
     
-    // Asegurarse de que las evaluaciones no sean null
     if (!evaluaciones) {
       evaluaciones = [];
     }
