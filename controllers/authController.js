@@ -14,6 +14,20 @@ exports.registro = async (req, res) => {
       }
     }
 
+    // Validar unicidad de roles únicos (director y técnico)
+    if (tipo === 'director') {
+      const directorExistente = await Usuario.findOne({ tipo: 'director' });
+      if (directorExistente) {
+        return res.status(400).json({ success: false, message: 'Ya existe un usuario con rol Director en el sistema' });
+      }
+    }
+    if (tipo === 'tecnico') {
+      const tecnicoExistente = await Usuario.findOne({ tipo: 'tecnico' });
+      if (tecnicoExistente) {
+        return res.status(400).json({ success: false, message: 'Ya existe un usuario con rol Técnico en el sistema' });
+      }
+    }
+
     const usuarioExistente = await Usuario.findOne({ 
       $or: [{ correo }, { cedula }]
     });
@@ -175,7 +189,7 @@ exports.getUsuariosPorTipo = async (req, res) => {
 // @access  Privado (solo administrador)
 exports.actualizarUsuario = async (req, res) => {
   try {
-    const camposPermitidos = ['nombre', 'apellido', 'correo', 'telefono', 'tipo'];
+    const camposPermitidos = ['nombre', 'apellido', 'correo', 'telefono', 'tipo', 'contraseña'];
     const datosActualizacion = {};
     camposPermitidos.forEach((campo) => {
       if (req.body[campo] !== undefined) datosActualizacion[campo] = req.body[campo];
@@ -280,6 +294,20 @@ exports.registroPorTecnico = async (req, res) => {
         success: false,
         message: 'Los técnicos solo pueden registrar usuarios con rol de lector o director'
       });
+    }
+
+    // Validar unicidad de roles únicos (director y técnico)
+    if (tipo === 'director') {
+      const directorExistente = await Usuario.findOne({ tipo: 'director' });
+      if (directorExistente) {
+        return res.status(400).json({ success: false, message: 'Ya existe un usuario con rol Director en el sistema' });
+      }
+    }
+    if (tipo === 'tecnico') {
+      const tecnicoExistente = await Usuario.findOne({ tipo: 'tecnico' });
+      if (tecnicoExistente) {
+        return res.status(400).json({ success: false, message: 'Ya existe un usuario con rol Técnico en el sistema' });
+      }
     }
 
     const usuarioExistente = await Usuario.findOne({ 
