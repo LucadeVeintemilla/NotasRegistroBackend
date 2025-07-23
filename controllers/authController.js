@@ -163,7 +163,13 @@ exports.getUsuariosPorTipo = async (req, res) => {
     
     // Si se especifica un tipo, filtrar por ese tipo
     if (tipo) {
-      query.tipo = tipo;
+      // Si el tipo incluye [in], es una búsqueda de múltiples tipos
+      if (typeof tipo === 'object' && tipo.in) {
+        const tipos = tipo.in.split(',');
+        query.tipo = { $in: tipos };
+      } else {
+        query.tipo = tipo;
+      }
     }
     
     const usuarios = await Usuario.find(query).select('-contraseña');
