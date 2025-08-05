@@ -101,8 +101,11 @@ exports.getEvaluaciones = async (req, res) => {
       
     
       
-    } else {
-      evaluaciones = await Evaluacion.find()
+    } else if (req.user.tipo === 'director') {
+      const query = {
+        evaluador: req.user.id
+      };
+      evaluaciones = await Evaluacion.find(query)
         .populate({
           path: 'estudiante',
           select: 'nombre apellido cedula tipo maestria'
