@@ -23,10 +23,7 @@ const UsuarioSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Por favor ingrese su correo electrónico'],
     unique: true,
-    match: [
-      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-      'Por favor ingrese un correo electrónico válido'
-    ]
+    
   },
   telefono: {
     type: String,

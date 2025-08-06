@@ -215,7 +215,7 @@ exports.actualizarUsuario = async (req, res) => {
   } catch (error) {
     console.error(error);
     if (error.code === 11000 && error.keyPattern && error.keyPattern.correo) {
-      return res.status(409).json({ success: false, message: 'Ya existe un usuario con ese correo' });
+      return res.status(409).json({ success: false, message: 'Ya existe un usuario con ese nombre' });
     }
     res.status(500).json({ success: false, message: 'Error al actualizar usuario', error: error.message });
   }
