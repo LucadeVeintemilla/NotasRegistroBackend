@@ -140,6 +140,55 @@ exports.getEvaluaciones = async (req, res) => {
   }
 };
 
+// Obtener TODAS las evaluaciones (solo director)
+exports.getTodasEvaluaciones = async (req, res) => {
+  try {
+    if (req.user.tipo !== 'director') {
+      return res.status(403).json({
+        success: false,
+        message: 'Solo los directores pueden ver todas las evaluaciones'
+      });
+    }
+
+    let evaluaciones = await Evaluacion.find({})
+      .populate({
+        path: 'estudiante',
+        select: 'nombre apellido cedula tipo maestria'
+      })
+      .populate({
+        path: 'evaluador',
+        select: 'nombre apellido cedula tipo maestria'
+      })
+      .lean();
+
+    evaluaciones = evaluaciones.map((eval) => ({
+      ...eval,
+      _id: eval._id.toString(),
+      evaluador: eval.evaluador
+        ? { ...eval.evaluador, _id: eval.evaluador._id.toString() }
+        : null,
+      createdBy: eval.createdBy?.toString?.() || eval.createdBy,
+      estudiante: eval.estudiante
+        ? { ...eval.estudiante, _id: eval.estudiante._id.toString() }
+        : null,
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: evaluaciones.length,
+      data: evaluaciones,
+      userInfo: { id: req.user.id, tipo: req.user.tipo },
+    });
+  } catch (error) {
+    console.error('Error en getTodasEvaluaciones:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener todas las evaluaciones',
+      error: error.message,
+    });
+  }
+};
+
 exports.getEvaluacion = async (req, res) => {
   try {
     const evaluacion = await Evaluacion.findById(req.params.id)
